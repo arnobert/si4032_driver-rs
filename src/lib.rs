@@ -15,11 +15,11 @@ where
     SPI: spi::Transfer<u8, Error=E> + spi::Write<u8, Error=E>,
     CS: OutputPin<Error = PinError>
 {
-    pub fn new(spi:SPI, cs:CS) -> u8 {
+    pub fn new(spi:SPI, cs:CS) -> Si4032<SPI, CS> {
         let mut radio = Si4032  {
             spi,
             cs};
-        0
+    radio
     }
 }
 
