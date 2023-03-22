@@ -5,6 +5,7 @@ use embedded_hal::digital::v2::OutputPin;
 use hal::blocking::spi;
 use stm32f1xx_hal::{spi::*};
 
+#[derive(Debug, Copy, Clone)]
 pub struct Si4032<SPI, CS> {
     spi: SPI,
     cs: CS
@@ -22,7 +23,7 @@ where
     radio
     }
 
-    fn write_register(mut self, reg: u8, data: u8) {
+    pub fn write_register(&mut self, reg: u8, data: u8) {
         let wrdata = [0x42];
         self.spi.write(&wrdata);
     }
