@@ -34,11 +34,15 @@ where
 
     fn read_register(&mut self, reg: u8) -> u8 {
         self.cs.set_low();
-        let rx_bux: &mut [u8] = &mut [reg & !(0x01<<7)];
-        self.spi.transfer(rx_bux);
+        let mut rx_buy= [reg, 0];
+        self.spi.transfer(&mut rx_buy);
         self.cs.set_high();
-        rx_bux[0]
+        rx_buy[1]
         }
+
+    pub fn enter_standby(&mut self) {
+        self.write_register(Registers::OP_FUN_CTRL_1.addr(), 0x09);
+    }
 
     pub fn set_freq(&mut self, f_upper: u8, f_lower: u8) {
         self.write_register(Registers::CAR_FREQ_1.addr(), f_upper);
