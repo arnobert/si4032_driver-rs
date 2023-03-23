@@ -27,12 +27,18 @@ where
 
     fn write_register(&mut self, reg: u8, data: u8) {
         self.cs.set_low();
-        let wrdata = [reg, data];
+        let wrdata = [reg | (0x01<<7), data];
         self.spi.write(&wrdata);
         self.cs.set_high();
     }
 
-    fn read_register(reg: u8) -> u8 {0}
+    fn read_register(&mut self, reg: u8) -> u8 {
+        self.cs.set_low();
+        let rx_bux: &mut [u8] = &mut [reg & !(0x01<<7)];
+        self.spi.transfer(rx_bux);
+        self.cs.set_high();
+        rx_bux[0]
+        }
 
     pub fn set_freq(&mut self, f_upper: u8, f_lower: u8) {
         self.write_register(Registers::CAR_FREQ_1.addr(), f_upper);
