@@ -5,6 +5,7 @@ use embedded_hal as hal;
 use embedded_hal::digital::v2::OutputPin;
 use hal::blocking::spi;
 use stm32f1xx_hal::{spi::*};
+use crate::registers::Registers;
 
 #[derive(Debug, Copy, Clone)]
 pub struct Si4032<SPI, CS> {
@@ -24,16 +25,23 @@ where
     radio
     }
 
-    pub fn write_register(&mut self, reg: u8, data: u8) {
-        let wrdata = [0x42];
+    fn write_register(&mut self, reg: u8, data: u8) {
+        self.cs.set_low();
+        let wrdata = [reg, data];
         self.spi.write(&wrdata);
+        self.cs.set_high();
     }
 
     fn read_register(reg: u8) -> u8 {0}
 
-    pub fn set_freq() {}
+    pub fn set_freq(&mut self, f_upper: u8, f_lower: u8) {
+        self.write_register(Registers::CAR_FREQ_1.addr(), f_upper);
+        self.write_register(Registers::CAR_FREQ_0.addr(), f_lower);
+    }
 
-    pub fn set_tx_pwr() {}
+    pub fn set_tx_pwr(&mut self, power: u8) {
+        self.write_register(Registers::TX_PWR.addr(), power);
+    }
 
     pub fn write_fifo() {}
 
