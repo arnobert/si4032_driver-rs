@@ -1,5 +1,6 @@
 #![no_std]
 
+mod registers;
 use embedded_hal as hal;
 use embedded_hal::digital::v2::OutputPin;
 use hal::blocking::spi;
