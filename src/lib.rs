@@ -46,7 +46,7 @@ where
     }
 
 
-    pub fn get_freq(&mut self, f_upper: u8, f_lower: u8) -> [u8; 2] {
+    pub fn get_freq(&mut self) -> [u8; 2] {
         let mut rx_buf: [u8; 2] = [0, 0];
         rx_buf[1] = self.read_register(Registers::CAR_FREQ_1.addr());
         rx_buf[0] = self.read_register(Registers::CAR_FREQ_0.addr());
