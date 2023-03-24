@@ -132,13 +132,31 @@ where
     }
     pub fn write_fifo() {}
 
-    pub fn get_device_status () {}
+    pub fn get_device_status (&mut self) -> u8 {
+       self.read_register(Registers::DEVICE_STATUS.addr())
+    }
 
-    pub fn set_tx () {}
+    pub fn set_sync_wrd(&mut self, syncword: u32) {
+        self.write_register(Registers::SYNC_WRD_0.addr(),
+                            (syncword & (0xFF)) as u8);
+        self.write_register(Registers::SYNC_WRD_1.addr(),
+                            ((syncword>>8) & (0xFF)) as u8);
+        self.write_register(Registers::SYNC_WRD_2.addr(),
+                            ((syncword>>16) & (0xFF)) as u8);
+        self.write_register(Registers::SYNC_WRD_3.addr(),
+                            ((syncword>>24) & (0xFF)) as u8);
+    }
 
-    pub fn set_sync_wrd() {}
-
-    pub fn set_tx_header() {}
+    pub fn set_tx_header(&mut self, tx_header: u32) {
+        self.write_register(Registers::TX_HEADER_0.addr(),
+                            (tx_header & (0xFF)) as u8);
+        self.write_register(Registers::TX_HEADER_1.addr(),
+                            ((tx_header>>8) & (0xFF)) as u8);
+        self.write_register(Registers::TX_HEADER_2.addr(),
+                            ((tx_header>>16) & (0xFF)) as u8);
+        self.write_register(Registers::TX_HEADER_3.addr(),
+                            ((tx_header>>24) & (0xFF)) as u8);
+    }
 
     pub fn set_tx_packet_leng() {}
 
