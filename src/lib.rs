@@ -158,6 +158,13 @@ where
                             ((tx_header>>24) & (0xFF)) as u8);
     }
 
+    pub fn set_auto_packet_handler(&mut self, ena: bool) {
+        let data_reg= self.read_register(Registers::DATA_ACCESS_CTRL.addr());
+        let bits = (ena as u8)<<3;
+        self.write_register(Registers::MODULATION_MODE_CTRL_2.addr(),
+                            (data_reg & !(bits)) | (bits));
+    }
+
     pub fn set_tx_packet_leng() {}
 
 }
