@@ -162,7 +162,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     pub fn set_auto_packet_handler(&mut self, ena: bool) {
         let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL.addr());
         let bits = (ena as u8) << 3;
-        self.write_register(Registers::MODULATION_MODE_CTRL_2.addr(),
+        self.write_register(Registers::DATA_ACCESS_CTRL.addr(),
                             (data_reg & !(bits)) | (bits));
     }
 
