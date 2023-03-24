@@ -7,6 +7,22 @@ use hal::blocking::spi;
 use stm32f1xx_hal::{spi::*};
 use crate::registers::Registers;
 
+#[repr(u8)]
+pub enum mod_type {
+    umod_car = 0x00,
+    ook = 0x01,
+    fsk = 0x02,
+    gfsk = 0x03
+}
+
+#[repr(u8)]
+pub enum mod_data_src {
+    direct_gpio = 0x00,
+    direct_sdi = 0x01,
+    fifo = 0x02,
+    pn9 = 0x03
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct Si4032<SPI, CS> {
     spi: SPI,
@@ -87,6 +103,19 @@ where
         self.write_register(Registers::TX_PWR.addr(), power);
     }
 
+    pub fn set_modulation_type(&mut self, mod_mode: u8) {
+        let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2.addr());
+        let bits = (1<<1) | 1;
+        self.write_register(Registers::MODULATION_MODE_CTRL_2.addr(),
+                            (mod_reg_2 & !(bits)) | ((mod_mode) & bits));
+    }
+
+    pub fn set_modulation_source(&mut self, mod_src: u8) {
+        let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2.addr());
+        let bits = (1<<1) | 1;
+        self.write_register(Registers::MODULATION_MODE_CTRL_2.addr(),
+                            (mod_reg_2 & !(bits)) | ((mod_src) & bits));
+    }
     pub fn write_fifo() {}
 
     pub fn get_device_status () {}
@@ -99,7 +128,6 @@ where
 
     pub fn set_tx_packet_leng() {}
 
-    pub fn set_modulation_mode() {}
 }
 
 
