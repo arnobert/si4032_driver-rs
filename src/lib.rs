@@ -40,15 +40,40 @@ where
         rx_buy[1]
         }
 
+    // Set operating modes -------------------------------------------------------------------------
+    // SHUTDOWN is not available for pin 20 is hardwired to gnd.
+
     pub fn enter_standby(&mut self) {
-        self.write_register(Registers::OP_FUN_CTRL_1.addr(), 0x09);
+        self.write_register(Registers::OP_FUN_CTRL_1.addr(), 0x00);
     }
 
+    pub fn enter_sleep(&mut self) {
+        let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1.addr());
+        self.write_register(Registers::OP_FUN_CTRL_1.addr(), 0x40); //enlbd bit
+    }
+
+    pub fn enter_ready(&mut self) {
+        let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1.addr());
+        self.write_register(Registers::OP_FUN_CTRL_1.addr(), reg_07 | 1); //xton bit
+    }
+
+    pub fn enter_tune(&mut self) {
+        let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1.addr());
+        self.write_register(Registers::OP_FUN_CTRL_1.addr(), reg_07 | (1<<1)); //pllon bit
+    }
+
+    pub fn enter_tx(&mut self) {
+        let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1.addr());
+        self.write_register(Registers::OP_FUN_CTRL_1.addr(), reg_07 | (1<<3)); //txon bit
+    }
+
+
+
+    // Frequency ctrl ------------------------------------------------------------------------------
     pub fn set_freq(&mut self, f_upper: u8, f_lower: u8) {
         self.write_register(Registers::CAR_FREQ_1.addr(), f_upper);
         self.write_register(Registers::CAR_FREQ_0.addr(), f_lower);
     }
-
 
     pub fn get_freq(&mut self) -> [u8; 2] {
         let mut rx_buf: [u8; 2] = [0, 0];
@@ -57,7 +82,7 @@ where
         rx_buf
     }
 
-
+    // TX power ------------------------------------------------------------------------------------
     pub fn set_tx_pwr(&mut self, power: u8) {
         self.write_register(Registers::TX_PWR.addr(), power);
     }
