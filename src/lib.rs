@@ -48,6 +48,20 @@ where
         self.cs.set_high();
     }
 
+    /*
+    Burst write mode
+    Example:
+    let dt = [0, 1, 3, 5];
+    self.burst_write_register(Registers::OP_FUN_CTRL_1.addr(), &dt);
+     */
+    fn burst_write_register(&mut self, reg: u8, data: &[u8]) {
+        self.cs.set_low();
+        let x_reg = reg | (0x01<<7);
+        self.spi.write(&[x_reg]);
+        self.spi.write(data);
+        self.cs.set_high();
+    }
+
     fn read_register(&mut self, reg: u8) -> u8 {
         self.cs.set_low();
         let mut rx_buy= [reg, 0];
