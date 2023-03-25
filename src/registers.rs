@@ -1,4 +1,5 @@
 #[allow(non_camel_case_types)]
+#[repr(u8)]
 pub enum Registers {
     DEVICE_VERSION = 0x01,
     DEVICE_STATUS = 0x02,
@@ -67,9 +68,4 @@ pub enum Registers {
     TX_FIFO_CTRL_0 = 0x7D,
     // 7E RESERVED
     FIFO_ACCESS = 0x7F
-}
-impl Registers {
-    pub fn addr(self) -> u8 {
-        self as u8
-    }
 }
