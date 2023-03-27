@@ -87,11 +87,6 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         rx_buy[1]
     }
 
-    // Set specific bit; mask should be of the form "1<<1"
-    fn set_bit(vin: u8, mask: u8) -> u8 {
-        vin & !(mask) | mask
-    }
-
     // Set operating modes -------------------------------------------------------------------------
     // SHUTDOWN is not available for pin 20 is hardwired to gnd.
 
