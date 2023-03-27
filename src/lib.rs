@@ -87,6 +87,11 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         rx_buy[1]
     }
 
+    // Set specific bit; mask should be of the form "1<<1"
+    fn set_bit(vin: u8, mask: u8) -> u8 {
+        vin & !(mask) | mask
+    }
+
     // Set operating modes -------------------------------------------------------------------------
     // SHUTDOWN is not available for pin 20 is hardwired to gnd.
 
@@ -141,8 +146,8 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     }
 
     // TX power ------------------------------------------------------------------------------------
-    pub fn set_tx_pwr(&mut self, power: u8) {
-        self.write_register(Registers::TX_PWR, power);
+    pub fn set_tx_pwr(&mut self, power: e_tx_power) {
+        self.write_register(Registers::TX_PWR, power as u8);
     }
 
     pub fn set_modulation_type(&mut self, mod_mode: u8) {
@@ -158,11 +163,18 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::MODULATION_MODE_CTRL_2,
                             (mod_reg_2 & !(bits)) | ((mod_src) & bits));
     }
-    pub fn write_fifo() {}
 
+
+    // FIFO ACCESS ---------------------------------------------------------------------------------
+    pub fn write_fifo(&mut self, data: &[u8]) {
+        self.burst_write_register(Registers::FIFO_ACCESS, data);
+    }
+
+    // DEVICE STATUS -------------------------------------------------------------------------------
     pub fn get_device_status(&mut self) -> u8 {
         self.read_register(Registers::DEVICE_STATUS)
     }
+
 
     pub fn set_sync_wrd(&mut self, syncword: u32) {
         self.write_register(Registers::SYNC_WRD_0,
@@ -193,7 +205,27 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (data_reg & !(bits)) | (bits));
     }
 
-    pub fn set_tx_packet_leng() {}
+
+    // GPIO ----------------------------------------------------------------------------------------
+    // GPIO 0 is n/c | GPIO 1: HEAT REF | GPIO 2: RADIO PROBE POINT
+
+    pub fn init_gpio_1(&mut self) {
+        self.write_register(Registers::GPIO_1_CFG, 0x0A);
+    }
+
+    pub fn init_gpio_2(&mut self) {
+        self.write_register(Registers::GPIO_2_CFG, 0x0A);
+    }
+
+    pub fn set_gpio_1(&mut self, dio: bool) {
+        let io = self.read_register(Registers::IO_PORT_CFG);
+        self.write_register(Registers::IO_PORT_CFG, io & !(1 << 1) | (dio as u8) << 1);
+    }
+
+    pub fn set_gpio_2(&mut self, dio: bool) {
+        let io = self.read_register(Registers::IO_PORT_CFG);
+        self.write_register(Registers::IO_PORT_CFG, io & !(1 << 2) | (dio as u8) << 2);
+    }
 }
 
 
