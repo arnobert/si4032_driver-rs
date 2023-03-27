@@ -24,6 +24,21 @@ pub enum mod_data_src {
     pn9 = 0x03,
 }
 
+
+// TX POWER:
+#[repr(u8)]
+pub enum e_tx_power {
+    p_1dBm = 0x0,
+    p_2dBm = 0x1,
+    p_5dBm = 0x2,
+    p_8dBm = 0x3,
+    p_11dBm = 0x4,
+    p_14dBm = 0x5,
+    p_17dBm = 0x6,
+    p_20dBm = 0x7,
+}
+
+
 #[derive(Debug, Copy, Clone)]
 pub struct Si4032<SPI, CS> {
     spi: SPI,
@@ -101,6 +116,18 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
 
 
     // Frequency ctrl ------------------------------------------------------------------------------
+    pub fn set_freq_band(&mut self, band: u8) {
+        let freq_reg = self.read_register(Registers::FREQ_BAND_SEL);
+        self.write_register(Registers::FREQ_BAND_SEL, freq_reg & !(0x1F) | band & (0x1F));
+    }
+
+    // hbsel (high band select): doubles tx frequency
+    pub fn set_hb_sel(&mut self, hbsel: bool) {
+        let freq_reg = self.read_register(Registers::FREQ_BAND_SEL);
+        self.write_register(Registers::FREQ_BAND_SEL,
+                            freq_reg & !(1 << 5) | (hbsel as u8) << 5);
+    }
+
     pub fn set_freq(&mut self, f_upper: u8, f_lower: u8) {
         self.write_register(Registers::CAR_FREQ_1, f_upper);
         self.write_register(Registers::CAR_FREQ_0, f_lower);
