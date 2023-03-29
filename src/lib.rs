@@ -157,6 +157,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     // TX power ------------------------------------------------------------------------------------
     pub fn set_tx_pwr(&mut self, power: ETxPower) {
         self.write_register(Registers::TX_PWR, power as u8);
+        let x = self.read_register(Registers::TX_PWR);
     }
 
     pub fn set_modulation_type(&mut self, mod_mode: ModType) {
@@ -220,6 +221,10 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (data_reg & !(bits)) | (bits));
     }
 
+    pub fn set_packet_len(&mut self, len: u8) {
+        self.write_register(Registers::TX_PACKET_LEN, len);
+    }
+
 
     // GPIO ----------------------------------------------------------------------------------------
     // GPIO 0 is n/c | GPIO 1: HEAT REF | GPIO 2: RADIO PROBE POINT
@@ -242,11 +247,25 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::IO_PORT_CFG, io & !(1 << 2) | (dio as u8) << 2);
     }
 
+    // DIAG ----------------------------------------------------------------------------------------
+    pub fn read_bat_volt(&mut self) -> u8 {
+        self.read_register(Registers::BAT_VOLT_LVL)
+    }
+
+    pub fn get_tx_pow(&mut self) -> u8 {
+        self.read_register(Registers::TX_PWR)
+    }
+
     // Generate CW (for testing purposes) ----------------------------------------------------------
     pub fn set_cw(&mut self) {
 
         // Set Mod Type
         self.set_modulation_type(ModType::OOK);
+
+        // Set FIFO mode
+        self.set_modulation_source(ModDataSrc::Fifo);
+
+        self.set_auto_packet_handler(true);
 
         // Write ones into fifo
         let n_ones: u8 = 8;
@@ -255,12 +274,12 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
             self.write_fifo(&[0xFF]);
             c = c+1;
         }
+        self.set_packet_len(n_ones);
 
+        let vbat = self.read_bat_volt();
+        let stat = self.get_device_status();
+        let pwr = self.get_tx_pow();
         self.enter_tx();
 
     }
 }
-
-
-
-
