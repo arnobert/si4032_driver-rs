@@ -93,6 +93,10 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     // Set operating modes -------------------------------------------------------------------------
     // SHUTDOWN is not available for pin 20 is hardwired to gnd.
 
+    pub fn swreset(&mut self) {
+        self.write_register(Registers::OP_FUN_CTRL_1, 0x80);
+    }
+
     pub fn enter_standby(&mut self) {
         self.write_register(Registers::OP_FUN_CTRL_1, 0x00);
     }
