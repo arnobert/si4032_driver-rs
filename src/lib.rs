@@ -234,6 +234,9 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     // Generate CW (for testing purposes) ----------------------------------------------------------
     pub fn set_cw(&mut self) {
 
+        // Set Mod Type
+        self.set_modulation_type(ModType::OOK);
+
         // Write ones into fifo
         let n_ones: u8 = 8;
         let mut c: u8 = 0;
@@ -241,6 +244,8 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
             self.write_fifo(&[0xFF]);
             c = c+1;
         }
+
+        self.enter_tx();
 
     }
 }
