@@ -23,8 +23,6 @@ pub enum ModDataSrc {
     Pn9 = 0x03,
 }
 
-
-// TX POWER:
 #[repr(u8)]
 pub enum ETxPower {
     P1dBm = 0x0,
@@ -37,8 +35,6 @@ pub enum ETxPower {
     P20dBm = 0x7,
 }
 
-
-#[derive(Debug, Copy, Clone)]
 pub struct Si4032<SPI, CS> {
     spi: SPI,
     cs: CS,
@@ -57,7 +53,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         radio
     }
 
-    fn write_register(&mut self, reg: Registers, data: u8) {
+    fn write_register(&mut self, reg: Registers, data: u8)  {
         self.cs.set_low();
         let wrdata = [reg as u8 | (0x01 << 7), data];
         self.spi.write(&wrdata);
