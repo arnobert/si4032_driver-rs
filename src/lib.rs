@@ -221,6 +221,19 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         let io = self.read_register(Registers::IO_PORT_CFG);
         self.write_register(Registers::IO_PORT_CFG, io & !(1 << 2) | (dio as u8) << 2);
     }
+
+    // Generate CW (for testing purposes) ----------------------------------------------------------
+    pub fn set_cw(&mut self) {
+
+        // Write ones into fifo
+        let n_ones: u8 = 8;
+        let mut c: u8 = 0;
+        while c < n_ones {
+            self.write_fifo(&[0xFF]);
+            c = c+1;
+        }
+
+    }
 }
 
 
