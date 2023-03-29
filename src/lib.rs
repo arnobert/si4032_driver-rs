@@ -24,6 +24,14 @@ pub enum ModDataSrc {
 }
 
 #[repr(u8)]
+pub enum TxDataClk {
+    Async = 0x00,
+    Gpio = 0x01,
+    Sdo = 0x02,
+    nIRQ = 0x03,
+}
+
+#[repr(u8)]
 pub enum ETxPower {
     P1dBm = 0x0,
     P2dBm = 0x1,
@@ -140,20 +148,26 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::TX_PWR, power as u8);
     }
 
-    pub fn set_modulation_type(&mut self, mod_mode: u8) {
+    pub fn set_modulation_type(&mut self, mod_mode: ModType) {
         let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2);
         let bits = (1 << 1) | 1;
         self.write_register(Registers::MODULATION_MODE_CTRL_2,
-                            (mod_reg_2 & !(bits)) | ((mod_mode) & bits));
+                            (mod_reg_2 & !(bits)) | ((mod_mode as u8) & bits));
     }
 
-    pub fn set_modulation_source(&mut self, mod_src: u8) {
+    pub fn set_modulation_source(&mut self, mod_src: ModDataSrc) {
         let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2);
-        let bits = (1 << 1) | 1;
+        let bits = (1 << 5) | (1 << 4);
         self.write_register(Registers::MODULATION_MODE_CTRL_2,
-                            (mod_reg_2 & !(bits)) | ((mod_src) & bits));
+                            (mod_reg_2 & !(bits)) | ((mod_src as u8) & bits));
     }
 
+    pub fn set_tx_data_clk(&mut self, clk: TxDataClk) {
+        let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2);
+        let bits = (1 << 7) | (1 << 6);
+        self.write_register(Registers::MODULATION_MODE_CTRL_2,
+                            (mod_reg_2 & !(bits)) | ((clk as u8) & bits));
+    }
 
     // FIFO ACCESS ---------------------------------------------------------------------------------
     pub fn write_fifo(&mut self, data: &[u8]) {
