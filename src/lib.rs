@@ -5,37 +5,36 @@ mod registers;
 use embedded_hal as hal;
 use embedded_hal::digital::v2::OutputPin;
 use hal::blocking::spi;
-use stm32f1xx_hal::{spi::*};
 use crate::registers::Registers;
 
 #[repr(u8)]
-pub enum mod_type {
-    umod_car = 0x00,
-    ook = 0x01,
-    fsk = 0x02,
-    gfsk = 0x03,
+pub enum ModType {
+    UmodCar = 0x00,
+    OOK = 0x01,
+    FSK = 0x02,
+    GFSK = 0x03,
 }
 
 #[repr(u8)]
-pub enum mod_data_src {
-    direct_gpio = 0x00,
-    direct_sdi = 0x01,
-    fifo = 0x02,
-    pn9 = 0x03,
+pub enum ModDataSrc {
+    DirectGpio = 0x00,
+    DirectSdi = 0x01,
+    Fifo = 0x02,
+    Pn9 = 0x03,
 }
 
 
 // TX POWER:
 #[repr(u8)]
-pub enum e_tx_power {
-    p_1dBm = 0x0,
-    p_2dBm = 0x1,
-    p_5dBm = 0x2,
-    p_8dBm = 0x3,
-    p_11dBm = 0x4,
-    p_14dBm = 0x5,
-    p_17dBm = 0x6,
-    p_20dBm = 0x7,
+pub enum ETxPower {
+    P1dBm = 0x0,
+    P2dBm = 0x1,
+    P5dBm = 0x2,
+    P8dBm = 0x3,
+    P11dBm = 0x4,
+    P14dBm = 0x5,
+    P17dBm = 0x6,
+    P20dBm = 0x7,
 }
 
 
@@ -141,7 +140,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     }
 
     // TX power ------------------------------------------------------------------------------------
-    pub fn set_tx_pwr(&mut self, power: e_tx_power) {
+    pub fn set_tx_pwr(&mut self, power: ETxPower) {
         self.write_register(Registers::TX_PWR, power as u8);
     }
 
