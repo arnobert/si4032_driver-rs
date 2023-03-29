@@ -97,28 +97,35 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::OP_FUN_CTRL_1, 0x80);
     }
 
-    pub fn enter_standby(&mut self) {
+    fn enter_standby(&mut self) {
         self.write_register(Registers::OP_FUN_CTRL_1, 0x00);
     }
 
-    pub fn enter_sleep(&mut self) {
+    fn enter_sleep(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
         self.write_register(Registers::OP_FUN_CTRL_1, 0x40); //enlbd bit
     }
 
-    pub fn enter_ready(&mut self) {
+    fn enter_ready(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | 1); //xton bit
     }
 
-    pub fn enter_tune(&mut self) {
+    fn enter_tune(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | (1 << 1)); //pllon bit
     }
 
     pub fn enter_tx(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
-        self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | (1 << 3)); //txon bit
+
+        self.write_register(Registers::OP_FUN_CTRL_1, reg_07
+            | (1 << 0)  //XTON
+            | (1 << 1)  //PLLON
+            | (1 << 3)  //TXON
+            | (1 << 6)  //ENLBD
+            | (1 << 7)  //SWRES
+        );
     }
 
 
