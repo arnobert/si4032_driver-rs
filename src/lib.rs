@@ -134,6 +134,10 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::FREQ_BAND_SEL, freq_reg & !(0x1F) | band & (0x1F));
     }
 
+    pub fn get_freq_band(&mut self) -> u8 {
+        self.read_register(Registers::FREQ_BAND_SEL)
+    }
+
     // hbsel (high band select): doubles tx frequency
     pub fn set_hb_sel(&mut self, hbsel: bool) {
         let freq_reg = self.read_register(Registers::FREQ_BAND_SEL);
@@ -155,9 +159,9 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
 
     // TX power ------------------------------------------------------------------------------------
     pub fn set_tx_pwr(&mut self, power: ETxPower) {
-        //TODO: read reg before writing
-        self.write_register(Registers::TX_PWR, power as u8);
-        let x = self.read_register(Registers::TX_PWR);
+        let txpwr_reg = self.read_register(Registers::TX_PWR);
+        self.write_register(Registers::TX_PWR,
+                            txpwr_reg & !(0x07) | power as u8);
     }
 
     pub fn set_modulation_type(&mut self, mod_mode: ModType) {
@@ -258,33 +262,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
 
     // Generate CW (for testing purposes) ----------------------------------------------------------
     pub fn set_cw(&mut self) {
-
-        // Set Mod Type
-        //self.set_modulation_type(ModType::OOK);
-
         self.set_modulation_type(ModType::UmodCar);
-
-
-/*        // Set FIFO mode
-        self.set_modulation_source(ModDataSrc::Fifo);
-
-        self.set_auto_packet_handler(false);
-
-        // Write ones into fifo
-        let n_ones: u8 = 8;
-        let mut c: u8 = 0;
-        while c < n_ones {
-            let write_data: [u8; 4] = [0xDE, 0xAD, 0xBE, 0xEF];
-            self.write_fifo(&write_data);
-            c = c+1;
-        }
-        self.set_packet_len(n_ones);*/
-
-        let vbat = self.read_bat_volt();
-        let stat = self.get_device_status();
-
         self.enter_tx();
-
-        let pwr = self.get_tx_pow();
     }
 }
