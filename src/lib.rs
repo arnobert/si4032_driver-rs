@@ -18,17 +18,17 @@ pub enum ModType {
 #[repr(u8)]
 pub enum ModDataSrc {
     DirectGpio = 0x00,
-    DirectSdi = 0x01,
-    Fifo = 0x02,
-    Pn9 = 0x03,
+    DirectSdi = 0x10,
+    Fifo = 0x20,
+    Pn9 = 0x30,
 }
 
 #[repr(u8)]
 pub enum TxDataClk {
-    Async = 0x00,
-    Gpio = 0x01,
-    Sdo = 0x02,
-    nIRQ = 0x03,
+    Async = 0x40,
+    Gpio = 0x50,
+    Sdo = 0x60,
+    nIRQ = 0x70,
 }
 
 #[repr(u8)]
@@ -156,6 +156,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
 
     // TX power ------------------------------------------------------------------------------------
     pub fn set_tx_pwr(&mut self, power: ETxPower) {
+        //TODO: read reg before writing
         self.write_register(Registers::TX_PWR, power as u8);
         let x = self.read_register(Registers::TX_PWR);
     }
@@ -169,7 +170,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
 
     pub fn set_modulation_source(&mut self, mod_src: ModDataSrc) {
         let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2);
-        let bits = (1 << 5) | (1 << 4);
+        let bits = ((1 << 5) | (1 << 4));
         self.write_register(Registers::MODULATION_MODE_CTRL_2,
                             (mod_reg_2 & !(bits)) | ((mod_src as u8) & bits));
     }
@@ -265,7 +266,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         // Set FIFO mode
         self.set_modulation_source(ModDataSrc::Fifo);
 
-        self.set_auto_packet_handler(true);
+        self.set_auto_packet_handler(false);
 
         // Write ones into fifo
         let n_ones: u8 = 8;
