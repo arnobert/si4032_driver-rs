@@ -119,13 +119,12 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     pub fn enter_tx(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
 
-        self.write_register(Registers::OP_FUN_CTRL_1, reg_07
-            | (1 << 0)  //XTON
+        let register_set =
+              (1 << 0)  //XTON
             | (1 << 1)  //PLLON
             | (1 << 3)  //TXON
-            | (1 << 6)  //ENLBD
-            | (1 << 7)  //SWRES
-        );
+            | (1 << 6);  //ENLBD
+        self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | register_set);
     }
 
 
@@ -280,8 +279,9 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
 
         let vbat = self.read_bat_volt();
         let stat = self.get_device_status();
-        let pwr = self.get_tx_pow();
+
         self.enter_tx();
 
+        let pwr = self.get_tx_pow();
     }
 }
