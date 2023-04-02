@@ -25,10 +25,10 @@ pub enum ModDataSrc {
 
 #[repr(u8)]
 pub enum TxDataClk {
-    Async = 0x40,
-    Gpio = 0x50,
-    Sdo = 0x60,
-    nIRQ = 0x70,
+    Async = 0x00,
+    Gpio = 0x40,
+    Sdo = 0x80,
+    nIRQ = 0xC0,
 }
 
 #[repr(u8)]
