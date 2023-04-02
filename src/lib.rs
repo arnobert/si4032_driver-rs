@@ -260,9 +260,12 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     pub fn set_cw(&mut self) {
 
         // Set Mod Type
-        self.set_modulation_type(ModType::OOK);
+        //self.set_modulation_type(ModType::OOK);
 
-        // Set FIFO mode
+        self.set_modulation_type(ModType::UmodCar);
+
+
+/*        // Set FIFO mode
         self.set_modulation_source(ModDataSrc::Fifo);
 
         self.set_auto_packet_handler(false);
@@ -275,7 +278,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
             self.write_fifo(&write_data);
             c = c+1;
         }
-        self.set_packet_len(n_ones);
+        self.set_packet_len(n_ones);*/
 
         let vbat = self.read_bat_volt();
         let stat = self.get_device_status();
