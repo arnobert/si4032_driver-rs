@@ -272,7 +272,8 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         let n_ones: u8 = 8;
         let mut c: u8 = 0;
         while c < n_ones {
-            self.write_fifo(&[0xFF]);
+            let write_data: [u8; 4] = [0xDE, 0xAD, 0xBE, 0xEF];
+            self.write_fifo(&write_data);
             c = c+1;
         }
         self.set_packet_len(n_ones);
