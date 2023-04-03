@@ -128,6 +128,10 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     }
 
 
+    pub fn chip_ready(&mut self) -> bool {
+        let isr2 = self.read_register(Registers::INTERRUPT_STATUS_2);
+        isr2 & (1<<1) != 0
+    }
     // Frequency ctrl ------------------------------------------------------------------------------
     pub fn set_freq_band(&mut self, band: u8) {
         let freq_reg = self.read_register(Registers::FREQ_BAND_SEL);
