@@ -50,6 +50,15 @@ pub enum ETxPower {
     P20dBm = 0x7,
 }
 
+/// CRC polynomial
+#[repr(u8)]
+pub enum CrcPoly {
+    Ccitt = 0x0,
+    Crc16 = 0x1,
+    Iec16 = 0x2,
+    Biacheva = 0x3
+}
+
 pub struct Si4032<SPI, CS> {
     spi: SPI,
     cs: CS,
@@ -346,6 +355,32 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         let bits = (ena as u8) << 3;
         self.write_register(Registers::DATA_ACCESS_CTRL,
                             (data_reg & !(bits)) | (bits));
+    }
+
+
+    /// Set LSB transmitted first (Register 0x30)
+    pub fn set_lsb_first(&mut self, ena: bool) {
+        let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let bits = (ena as u8) << 6;
+        self.write_register(Registers::DATA_ACCESS_CTRL,
+                            (data_reg & !(bits)) | (bits));
+    }
+
+    /// Set CRC enable (Register 0x30)
+    pub fn set_crc_en(&mut self, ena: bool) {
+        let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let bits = (ena as u8) << 2;
+        self.write_register(Registers::DATA_ACCESS_CTRL,
+                            (data_reg & !(bits)) | (bits));
+    }
+
+    /// Set CRC Polynome (Register 0x30)
+
+    pub fn set_crc_poly(&mut self, poly: CrcPoly) {
+        let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let bits = poly as u8;
+        self.write_register(Registers::DATA_ACCESS_CTRL,
+                            (data_reg & !(0x3)) | (bits));
     }
 
     /// Set packet length (Register 0x3E)
