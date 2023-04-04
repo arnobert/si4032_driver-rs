@@ -300,6 +300,46 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             ((tx_header >> 24) & (0xFF)) as u8);
     }
 
+    /// Set trxdrtscale (for data rates below 30 kbps, Register 0x70)
+    pub fn set_trxdrtscale(&mut self, scale: bool) {
+        let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
+        let bit = u8::from(scale) << 5;
+        self.write_register(Registers::MODULATION_MODE_CTRL_1,
+                            modmodectrl & !(bit) | bit);
+    }
+
+    /// Set (Manchester Preamble Polarity, Register 0x70)
+    pub fn set_man_preamble_pol(&mut self, preamble: bool) {
+        let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
+        let bit = u8::from(preamble) << 3;
+        self.write_register(Registers::MODULATION_MODE_CTRL_1,
+                            modmodectrl & !(bit) | bit);
+    }
+
+    /// Set (Manchester Data Inversion, Register 0x70)
+    pub fn set_man_data_inv(&mut self, inv: bool) {
+        let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
+        let bit = u8::from(inv) << 2;
+        self.write_register(Registers::MODULATION_MODE_CTRL_1,
+                            modmodectrl & !(bit) | bit);
+    }
+
+    /// Set (Manchester enable, Register 0x70)
+    pub fn set_man_en(&mut self, en: bool) {
+        let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
+        let bit = u8::from(en) << 1;
+        self.write_register(Registers::MODULATION_MODE_CTRL_1,
+                            modmodectrl & !(bit) | bit);
+    }
+
+    /// Set (Manchester enable, Register 0x70)
+    pub fn set_man_data_whit(&mut self, en: bool) {
+        let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
+        let bit = u8::from(en);
+        self.write_register(Registers::MODULATION_MODE_CTRL_1,
+                            modmodectrl & !(bit) | bit);
+    }
+
     /// Set automatic packet handler (Register 0x30)
     pub fn set_auto_packet_handler(&mut self, ena: bool) {
         let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
