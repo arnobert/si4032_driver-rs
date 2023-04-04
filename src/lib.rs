@@ -116,6 +116,11 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | (1 << 1)); //pllon bit
     }
 
+    fn tx_on(&mut self) {
+        let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
+        self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | (1 << 3)); //txon bit
+    }
+
     pub fn enter_tx(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
 
