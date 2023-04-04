@@ -1,5 +1,5 @@
 #![no_std]
-
+// Driver for the Si4032 transmitter used on RS41 radio sonde.
 mod registers;
 
 use embedded_hal as hal;
@@ -7,6 +7,8 @@ use embedded_hal::digital::v2::OutputPin;
 use hal::blocking::spi;
 use crate::registers::Registers;
 
+
+/// Si4032 supports four modulation types:
 #[repr(u8)]
 pub enum ModType {
     UmodCar = 0x00,
@@ -220,6 +222,38 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::SYNC_WRD_3,
                             ((syncword >> 24) & (0xFF)) as u8);
     }
+
+    // Header CTRL ---------------------------------------------------------------------------------
+    pub fn set_tx_header_len(&mut self, head_len: u8) {
+        let hdrctrl = self.read_register(Registers::HEADER_CTRL);
+        self.write_register(Registers::HEADER_CTRL,
+                            hdrctrl &!(0x70) | (head_len & 0x7) << 4
+        );
+    }
+
+    pub fn set_tx_fixplen(&mut self, fix_len: bool) {
+        let hdrctrl = self.read_register(Registers::HEADER_CTRL);
+        let bit = u8::from(fix_len) << 3;
+        self.write_register(Registers::HEADER_CTRL,
+                            hdrctrl &!(bit) | bit );
+    }
+
+    pub fn set_tx_sync_len(&mut self, sync_len: u8) {
+        let hdrctrl = self.read_register(Registers::HEADER_CTRL);
+        self.write_register(Registers::HEADER_CTRL,
+                            hdrctrl &!(0x06) | (sync_len & 0x07) << 1
+        );
+    }
+
+    pub fn set_tx_prealen(&mut self, prea_len: u16) {
+        let hdrctrl: u8 = self.read_register(Registers::HEADER_CTRL);
+        let len_msb: u8 = ((prea_len & 0xF00) >> 8) as u8 ;
+
+        self.write_register(Registers::HEADER_CTRL, hdrctrl & !(0xFE) | len_msb);
+        self.write_register(Registers::PREAMBLE_LEN, (prea_len & 0xFF) as u8);
+    }
+
+
 
     pub fn set_tx_header(&mut self, tx_header: u32) {
         self.write_register(Registers::TX_HEADER_0,
