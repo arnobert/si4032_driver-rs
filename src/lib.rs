@@ -194,6 +194,11 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (mod_reg_2 & !(bits)) | ((clk as u8) & bits));
     }
 
+    pub fn set_data_rate(&mut self, rate: u16) {
+        self.write_register(Registers::TX_DATA_RATE_1, ((rate & 0xFF00) >> 8) as u8);
+        self.write_register(Registers::TX_DATA_RATE_0, (rate & 0xFF) as u8);
+    }
+
     // FIFO ACCESS ---------------------------------------------------------------------------------
     pub fn write_fifo(&mut self, data: &[u8]) {
         self.burst_write_register(Registers::FIFO_ACCESS, data);
