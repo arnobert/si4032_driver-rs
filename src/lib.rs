@@ -61,7 +61,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         radio
     }
 
-    fn write_register(&mut self, reg: Registers, data: u8)  {
+    fn write_register(&mut self, reg: Registers, data: u8) {
         self.cs.set_low();
         let wrdata = [reg as u8 | (0x01 << 7), data];
         self.spi.write(&wrdata);
@@ -120,17 +120,17 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
 
         let register_set =
-              (1 << 0)  //XTON
-            | (1 << 1)  //PLLON
-            | (1 << 3)  //TXON
-            | (1 << 6);  //ENLBD
+            (1 << 0)  //XTON
+                | (1 << 1)  //PLLON
+                | (1 << 3)  //TXON
+                | (1 << 6);  //ENLBD
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | register_set);
     }
 
 
     pub fn chip_ready(&mut self) -> bool {
         let isr2 = self.read_register(Registers::INTERRUPT_STATUS_2);
-        isr2 & (1<<1) != 0
+        isr2 & (1 << 1) != 0
     }
     // Frequency ctrl ------------------------------------------------------------------------------
     pub fn set_freq_band(&mut self, band: u8) {
