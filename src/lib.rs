@@ -1,4 +1,5 @@
 #![no_std]
+
 // Driver for the Si4032 transmitter used on RS41 radio sonde.
 mod registers;
 
@@ -17,6 +18,8 @@ pub enum ModType {
     GFSK = 0x03,
 }
 
+/// Four modulation data sources available.
+/// On RS41 we use Fifo
 #[repr(u8)]
 pub enum ModDataSrc {
     DirectGpio = 0x00,
@@ -25,6 +28,7 @@ pub enum ModDataSrc {
     Pn9 = 0x30,
 }
 
+/// TX data clock source
 #[repr(u8)]
 pub enum TxDataClk {
     Async = 0x00,
@@ -33,6 +37,7 @@ pub enum TxDataClk {
     nIRQ = 0xC0,
 }
 
+/// TX power
 #[repr(u8)]
 pub enum ETxPower {
     P1dBm = 0x0,
@@ -63,6 +68,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         radio
     }
 
+    /// Write SPI register
     fn write_register(&mut self, reg: Registers, data: u8) {
         self.cs.set_low();
         let wrdata = [reg as u8 | (0x01 << 7), data];
@@ -76,6 +82,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     let dt = [0, 1, 3, 5];
     self.burst_write_register(Registers::OP_FUN_CTRL_1.addr(), &dt);
      */
+    /// Write to N SPI registers
     fn burst_write_register(&mut self, reg: Registers, data: &[u8]) {
         self.cs.set_low();
         let x_reg = reg as u8 | (0x01 << 7);
@@ -84,6 +91,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.cs.set_high();
     }
 
+    /// Read SPI register
     fn read_register(&mut self, reg: Registers) -> u8 {
         self.cs.set_low();
         let mut rx_buy = [reg as u8, 0];
@@ -95,34 +103,42 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     // Set operating modes -------------------------------------------------------------------------
     // SHUTDOWN is not available for pin 20 is hardwired to gnd.
 
+    /// Perform soft reset; all registers hold their default values afterwards.
+    /// Poll interrupt register (chip_ready).
     pub fn swreset(&mut self) {
         self.write_register(Registers::OP_FUN_CTRL_1, 0x80);
     }
 
+    /// Go into standby
     fn enter_standby(&mut self) {
         self.write_register(Registers::OP_FUN_CTRL_1, 0x00);
     }
 
+    /// Go into sleep; set enlbd bit
     fn enter_sleep(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
         self.write_register(Registers::OP_FUN_CTRL_1, 0x40); //enlbd bit
     }
 
+    /// Go into ready; set xton bit
     fn enter_ready(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | 1); //xton bit
     }
 
+    /// Go into tuning mode; set pllon bit
     fn enter_tune(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | (1 << 1)); //pllon bit
     }
 
+    /// Transmit
     pub fn tx_on(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | (1 << 3)); //txon bit
     }
 
+    /// Set all bits necessary in order to transmit
     pub fn enter_tx(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
 
@@ -134,33 +150,38 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | register_set);
     }
 
-
+    /// Chip ready after reset
     pub fn chip_ready(&mut self) -> bool {
         let isr2 = self.read_register(Registers::INTERRUPT_STATUS_2);
         isr2 & (1 << 1) != 0
     }
+
     // Frequency ctrl ------------------------------------------------------------------------------
+    /// Set frequency band (Register 0x75)
     pub fn set_freq_band(&mut self, band: u8) {
         let freq_reg = self.read_register(Registers::FREQ_BAND_SEL);
         self.write_register(Registers::FREQ_BAND_SEL, freq_reg & !(0x1F) | band & (0x1F));
     }
 
+    /// Return frequency (Register 0x75)
     pub fn get_freq_band(&mut self) -> u8 {
         self.read_register(Registers::FREQ_BAND_SEL)
     }
 
-    // hbsel (high band select): doubles tx frequency
+    /// Set high band (Register 0x75)
     pub fn set_hb_sel(&mut self, hbsel: bool) {
         let freq_reg = self.read_register(Registers::FREQ_BAND_SEL);
         self.write_register(Registers::FREQ_BAND_SEL,
                             freq_reg & !(1 << 5) | (hbsel as u8) << 5);
     }
 
+    /// Set frequency (Registers 0x76 / 0x77)
     pub fn set_freq(&mut self, f_upper: u8, f_lower: u8) {
         self.write_register(Registers::CAR_FREQ_1, f_upper);
         self.write_register(Registers::CAR_FREQ_0, f_lower);
     }
 
+    /// Return frequency (Registers 0x76 / 0x77)
     pub fn get_freq(&mut self) -> [u8; 2] {
         let mut rx_buf: [u8; 2] = [0, 0];
         rx_buf[1] = self.read_register(Registers::CAR_FREQ_1);
@@ -168,13 +189,19 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         rx_buf
     }
 
-    // TX power ------------------------------------------------------------------------------------
+    /// Set TX power (Register 0x6D)
     pub fn set_tx_pwr(&mut self, power: ETxPower) {
         let txpwr_reg = self.read_register(Registers::TX_PWR);
         self.write_register(Registers::TX_PWR,
                             txpwr_reg & !(0x07) | power as u8);
     }
 
+    /// Return TX power
+    pub fn get_tx_pow(&mut self) -> u8 {
+        self.read_register(Registers::TX_PWR)
+    }
+
+    /// Set modulation type (Register 0x71)
     pub fn set_modulation_type(&mut self, mod_mode: ModType) {
         let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2);
         let bits = (1 << 1) | 1;
@@ -182,6 +209,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (mod_reg_2 & !(bits)) | ((mod_mode as u8) & bits));
     }
 
+    /// Set modulation source (Register 0x71)
     pub fn set_modulation_source(&mut self, mod_src: ModDataSrc) {
         let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2);
         let bits = ((1 << 5) | (1 << 4));
@@ -189,6 +217,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (mod_reg_2 & !(bits)) | ((mod_src as u8) & bits));
     }
 
+    /// Set TX data clock (Register 0x71)
     pub fn set_tx_data_clk(&mut self, clk: TxDataClk) {
         let mod_reg_2 = self.read_register(Registers::MODULATION_MODE_CTRL_2);
         let bits = (1 << 7) | (1 << 6);
@@ -196,22 +225,24 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (mod_reg_2 & !(bits)) | ((clk as u8) & bits));
     }
 
+    /// Set TX data rate (Registers 0x6E / 0x6F)
     pub fn set_data_rate(&mut self, rate: u16) {
         self.write_register(Registers::TX_DATA_RATE_1, ((rate & 0xFF00) >> 8) as u8);
         self.write_register(Registers::TX_DATA_RATE_0, (rate & 0xFF) as u8);
     }
 
-    // FIFO ACCESS ---------------------------------------------------------------------------------
+    /// Write into FIFO (Register 0x77)
     pub fn write_fifo(&mut self, data: &[u8]) {
         self.burst_write_register(Registers::FIFO_ACCESS, data);
     }
 
-    // DEVICE STATUS -------------------------------------------------------------------------------
+    /// Return device status (Register 0x02)
     pub fn get_device_status(&mut self) -> u8 {
         self.read_register(Registers::DEVICE_STATUS)
     }
 
 
+    /// Set sync word (Register 0x36 .. 0x39)
     pub fn set_sync_wrd(&mut self, syncword: u32) {
         self.write_register(Registers::SYNC_WRD_0,
                             (syncword & (0xFF)) as u8);
@@ -224,37 +255,40 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     }
 
     // Header CTRL ---------------------------------------------------------------------------------
+    /// Set header length (Register 0x33)
     pub fn set_tx_header_len(&mut self, head_len: u8) {
         let hdrctrl = self.read_register(Registers::HEADER_CTRL);
         self.write_register(Registers::HEADER_CTRL,
-                            hdrctrl &!(0x70) | (head_len & 0x7) << 4
+                            hdrctrl & !(0x70) | (head_len & 0x7) << 4,
         );
     }
 
+    /// Include packet length into header (Register 0x33)
     pub fn set_tx_fixplen(&mut self, fix_len: bool) {
         let hdrctrl = self.read_register(Registers::HEADER_CTRL);
         let bit = u8::from(fix_len) << 3;
         self.write_register(Registers::HEADER_CTRL,
-                            hdrctrl &!(bit) | bit );
+                            hdrctrl & !(bit) | bit);
     }
 
+    /// Set sync word length (Register 0x33)
     pub fn set_tx_sync_len(&mut self, sync_len: u8) {
         let hdrctrl = self.read_register(Registers::HEADER_CTRL);
         self.write_register(Registers::HEADER_CTRL,
-                            hdrctrl &!(0x06) | (sync_len & 0x07) << 1
+                            hdrctrl & !(0x06) | (sync_len & 0x07) << 1,
         );
     }
 
+    /// Set preamble length (Register 0x34)
     pub fn set_tx_prealen(&mut self, prea_len: u16) {
         let hdrctrl: u8 = self.read_register(Registers::HEADER_CTRL);
-        let len_msb: u8 = ((prea_len & 0xF00) >> 8) as u8 ;
+        let len_msb: u8 = ((prea_len & 0xF00) >> 8) as u8;
 
         self.write_register(Registers::HEADER_CTRL, hdrctrl & !(0xFE) | len_msb);
         self.write_register(Registers::PREAMBLE_LEN, (prea_len & 0xFF) as u8);
     }
 
-
-
+    /// Set TX header (Register 0x3A .. 0x3D)
     pub fn set_tx_header(&mut self, tx_header: u32) {
         self.write_register(Registers::TX_HEADER_0,
                             (tx_header & (0xFF)) as u8);
@@ -266,6 +300,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             ((tx_header >> 24) & (0xFF)) as u8);
     }
 
+    /// Set automatic packet handler (Register 0x30)
     pub fn set_auto_packet_handler(&mut self, ena: bool) {
         let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
         let bits = (ena as u8) << 3;
@@ -273,6 +308,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (data_reg & !(bits)) | (bits));
     }
 
+    /// Set packet length (Register 0x3E)
     pub fn set_packet_len(&mut self, len: u8) {
         self.write_register(Registers::TX_PACKET_LEN, len);
     }
@@ -280,7 +316,6 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
 
     // GPIO ----------------------------------------------------------------------------------------
     // GPIO 0 is n/c | GPIO 1: HEAT REF | GPIO 2: RADIO PROBE POINT
-
     pub fn init_gpio_1(&mut self) {
         self.write_register(Registers::GPIO_1_CFG, 0x0A);
     }
@@ -300,15 +335,13 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     }
 
     // DIAG ----------------------------------------------------------------------------------------
+    /// RETURN battery voltage
     pub fn read_bat_volt(&mut self) -> u8 {
         self.read_register(Registers::BAT_VOLT_LVL)
     }
 
-    pub fn get_tx_pow(&mut self) -> u8 {
-        self.read_register(Registers::TX_PWR)
-    }
-
     // Generate CW (for testing purposes) ----------------------------------------------------------
+    /// Put out unmodulated carrier
     pub fn set_cw(&mut self) {
         self.set_modulation_type(ModType::UmodCar);
         self.enter_tx();
