@@ -147,6 +147,11 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | (1 << 3)); //txon bit
     }
 
+    pub fn is_tx_on(&mut self) -> bool {
+        let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
+        reg_07 & (1 << 3) != 0
+    }
+
     /// Set all bits necessary in order to transmit
     pub fn enter_tx(&mut self) {
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
@@ -291,7 +296,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     /// Set preamble length (Register 0x34)
     pub fn set_tx_prealen(&mut self, prea_len: u16) {
         let hdrctrl: u8 = self.read_register(Registers::HEADER_CTRL);
-        let len_msb: u8 = ((prea_len & 0xF00) >> 8) as u8;
+        let len_msb: u8 = ((prea_len & 0x100) >> 8) as u8;
 
         self.write_register(Registers::HEADER_CTRL, hdrctrl & !(0xFE) | len_msb);
         self.write_register(Registers::PREAMBLE_LEN, (prea_len & 0xFF) as u8);
@@ -387,6 +392,15 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     pub fn set_packet_len(&mut self, len: u8) {
         self.write_register(Registers::TX_PACKET_LEN, len);
     }
+
+    /// Set CRC enable (Register 0x30)
+    pub fn set_crc(&mut self, crc: bool) {
+        let data_acc = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let bits = (crc as u8) << 5;
+        self.write_register(Registers::DATA_ACCESS_CTRL,
+                            (data_acc & !(bits)) | (bits));
+    }
+
 
 
     // GPIO ----------------------------------------------------------------------------------------
