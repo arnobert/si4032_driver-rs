@@ -157,7 +157,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
 
         let register_set =
-            (1 << 0)  //XTON
+                  (1 << 0)  //XTON
                 | (1 << 1)  //PLLON
                 | (1 << 3)  //TXON
                 | (1 << 6);  //ENLBD
@@ -280,9 +280,10 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     /// Include packet length into header (Register 0x33)
     pub fn set_tx_fixplen(&mut self, fix_len: bool) {
         let hdrctrl = self.read_register(Registers::HEADER_CTRL);
-        let bit = u8::from(fix_len) << 3;
+        let mask: u8 = 1 << 3;
+        let bit = (fix_len as u8) << 3;
         self.write_register(Registers::HEADER_CTRL,
-                            hdrctrl & !(bit) | bit);
+                            hdrctrl & !(mask) | bit);
     }
 
     /// Set sync word length (Register 0x33)
@@ -317,70 +318,77 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     /// Set trxdrtscale (for data rates below 30 kbps, Register 0x70)
     pub fn set_trxdrtscale(&mut self, scale: bool) {
         let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
-        let bit = u8::from(scale) << 5;
+        let mask: u8 = 1 << 5;
+        let bit = (scale as u8) << 5;
         self.write_register(Registers::MODULATION_MODE_CTRL_1,
-                            modmodectrl & !(bit) | bit);
+                            modmodectrl & !(mask) | bit);
     }
 
-    /// Set (Manchester Preamble Polarity, Register 0x70)
+    /// Set Manchester Preamble Polarity (Register 0x70)
     pub fn set_man_preamble_pol(&mut self, preamble: bool) {
         let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
-        let bit = u8::from(preamble) << 3;
+        let mask: u8 = 1 << 3;
+        let bit = (preamble as u8) << 3;
         self.write_register(Registers::MODULATION_MODE_CTRL_1,
-                            modmodectrl & !(bit) | bit);
+                            modmodectrl & !(mask) | bit);
     }
 
-    /// Set (Manchester Data Inversion, Register 0x70)
+    /// Set Manchester Data Inversion (Register 0x70)
     pub fn set_man_data_inv(&mut self, inv: bool) {
         let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
+        let mask: u8 = 1 << 2;
         let bit = u8::from(inv) << 2;
         self.write_register(Registers::MODULATION_MODE_CTRL_1,
-                            modmodectrl & !(bit) | bit);
+                            modmodectrl & !(mask) | bit);
     }
 
-    /// Set (Manchester enable, Register 0x70)
+    /// Set Manchester enable (Register 0x70)
     pub fn set_man_en(&mut self, en: bool) {
         let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
+        let mask: u8 = 1 << 1;
         let bit = u8::from(en) << 1;
         self.write_register(Registers::MODULATION_MODE_CTRL_1,
-                            modmodectrl & !(bit) | bit);
+                            modmodectrl & !(mask) | bit);
     }
 
-    /// Set (Manchester enable, Register 0x70)
+    /// Set Manchester Data Whiting (Register 0x70)
     pub fn set_man_data_whit(&mut self, en: bool) {
         let modmodectrl = self.read_register(Registers::MODULATION_MODE_CTRL_1);
-        let bit = u8::from(en);
+        let mask: u8 = 1;
+        let bit = en as u8;
         self.write_register(Registers::MODULATION_MODE_CTRL_1,
-                            modmodectrl & !(bit) | bit);
+                            modmodectrl & !(mask) | bit);
     }
 
     /// Set automatic packet handler (Register 0x30)
     pub fn set_auto_packet_handler(&mut self, ena: bool) {
         let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let mask: u8 = 1 << 3;
         let bits = (ena as u8) << 3;
         self.write_register(Registers::DATA_ACCESS_CTRL,
-                            (data_reg & !(bits)) | (bits));
+                            (data_reg & !(mask)) | (bits));
     }
 
 
     /// Set LSB transmitted first (Register 0x30)
     pub fn set_lsb_first(&mut self, ena: bool) {
         let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let mask: u8 = 1 << 6;
         let bits = (ena as u8) << 6;
         self.write_register(Registers::DATA_ACCESS_CTRL,
-                            (data_reg & !(bits)) | (bits));
+                            (data_reg & !(mask)) | (bits));
     }
 
     /// Set CRC enable (Register 0x30)
     pub fn set_crc_en(&mut self, ena: bool) {
         let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let mask: u8 = 1 << 2;
         let bits = (ena as u8) << 2;
         self.write_register(Registers::DATA_ACCESS_CTRL,
-                            (data_reg & !(bits)) | (bits));
+                            (data_reg & !(mask)) | (bits));
     }
 
     /// Set CRC Polynome (Register 0x30)
-
     pub fn set_crc_poly(&mut self, poly: CrcPoly) {
         let data_reg = self.read_register(Registers::DATA_ACCESS_CTRL);
         let bits = poly as u8;
@@ -396,11 +404,11 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     /// Set CRC enable (Register 0x30)
     pub fn set_crc(&mut self, crc: bool) {
         let data_acc = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let mask = 1 << 5;
         let bits = (crc as u8) << 5;
         self.write_register(Registers::DATA_ACCESS_CTRL,
-                            (data_acc & !(bits)) | (bits));
+                            (data_acc & !(mask)) | (bits));
     }
-
 
 
     // GPIO ----------------------------------------------------------------------------------------
