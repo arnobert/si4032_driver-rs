@@ -56,7 +56,7 @@ pub enum CrcPoly {
     Ccitt = 0x0,
     Crc16 = 0x1,
     Iec16 = 0x2,
-    Biacheva = 0x3
+    Biacheva = 0x3,
 }
 
 pub struct Si4032<SPI, CS> {
@@ -157,7 +157,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
 
         let register_set =
-                  (1 << 0)  //XTON
+            (1 << 0)  //XTON
                 | (1 << 1)  //PLLON
                 | (1 << 3)  //TXON
                 | (1 << 6);  //ENLBD
