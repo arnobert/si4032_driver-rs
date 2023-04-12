@@ -1,2 +1,2 @@
 # si4032_driver-rs
-Driver for Si4032 driver in RS41
+Driver for Si4032 radio in RS41 radiosonde.
