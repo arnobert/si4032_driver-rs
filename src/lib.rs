@@ -411,6 +411,19 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     }
 
 
+    // FIFO
+    /// Fifo almost full
+    pub fn fifo_full(&mut self) -> bool {
+        let int_reg_01 = self.read_register(Registers::INTERRUPT_STATUS_1);
+        int_reg_01 & 1 << 6 != 0
+    }
+
+    /// Fifo almost empty
+    pub fn fifo_empty(&mut self) -> bool {
+        let int_reg_01 = self.read_register(Registers::INTERRUPT_STATUS_1);
+        int_reg_01 & 1 << 5 != 0
+    }
+
     // GPIO ----------------------------------------------------------------------------------------
     // GPIO 0 is n/c | GPIO 1: HEAT REF | GPIO 2: RADIO PROBE POINT
     pub fn init_gpio_1(&mut self) {
