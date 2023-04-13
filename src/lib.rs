@@ -427,10 +427,10 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     // Frequency Deviation
     /// Set Frequency Offset
     pub fn set_freq_offset(&mut self, offset: u16) {
-        let f_offset_low: u8  = (offset & 0xF) as u8;
-        let f_offset_high: u8 = ((offset & 0x20) >> 8) as u8;
+        let f_offset_low: u8  = (offset & 0xFF) as u8;
+        let f_offset_high: u8 = ((offset & 0x300) >> 8) as u8;
         self.write_register(Registers::FREQ_OFFSET_1, f_offset_low);
-        self.write_register(Registers::FREQ_OFFSET_2, f_offset_low);
+        self.write_register(Registers::FREQ_OFFSET_2, f_offset_high);
     }
 
     /// Set Frequency Deviation
