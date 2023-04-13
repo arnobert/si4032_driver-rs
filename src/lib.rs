@@ -424,6 +424,15 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         int_reg_01 & 1 << 5 != 0
     }
 
+    // Frequency Deviation
+    /// Set Frequency Offset
+    pub fn set_freq_offset(&mut self, offset: u16) {
+        let f_offset_low = offset & 0xF as u8;
+        let f_offset_high = ((offset & 0x20) >> 8) as u8;
+        self.write_register(Registers::FREQ_OFFSET_1, f_offset_low);
+        self.write_register(Registers::FREQ_OFFSET_2, f_offset_low);
+    }
+
     // GPIO ----------------------------------------------------------------------------------------
     // GPIO 0 is n/c | GPIO 1: HEAT REF | GPIO 2: RADIO PROBE POINT
     pub fn init_gpio_1(&mut self) {
