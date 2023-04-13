@@ -415,13 +415,13 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     /// Fifo almost full
     pub fn fifo_full(&mut self) -> bool {
         let int_reg_01 = self.read_register(Registers::INTERRUPT_STATUS_1);
-        int_reg_01 & 1 << 6 != 0
+        int_reg_01 & (1 << 6) != 0
     }
 
     /// Fifo almost empty
     pub fn fifo_empty(&mut self) -> bool {
         let int_reg_01 = self.read_register(Registers::INTERRUPT_STATUS_1);
-        int_reg_01 & 1 << 5 != 0
+        int_reg_01 & (1 << 5) != 0
     }
 
     // Frequency Deviation
