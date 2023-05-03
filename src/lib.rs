@@ -290,7 +290,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     pub fn set_tx_sync_len(&mut self, sync_len: u8) {
         let hdrctrl = self.read_register(Registers::HEADER_CTRL);
         self.write_register(Registers::HEADER_CTRL,
-                            hdrctrl & !(0x06) | (sync_len & 0x07) << 1,
+                            hdrctrl & !(0x03 << 1) | (sync_len & 0x3) << 1,
         );
     }
 
