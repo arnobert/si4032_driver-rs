@@ -164,6 +164,19 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
         self.write_register(Registers::OP_FUN_CTRL_1, reg_07 | register_set);
     }
 
+    /// Turn TX off
+    pub fn tx_off(&mut self) {
+        let reg_07 = self.read_register(Registers::OP_FUN_CTRL_1);
+
+        let register_set =
+            (1 << 0)  //XTON
+                | (1 << 1)  //PLLON
+                | (0 << 3)  //TXON
+                | (1 << 6);  //ENLBD
+        self.write_register(Registers::OP_FUN_CTRL_1, (reg_07 & 0xF7) | register_set);
+    }
+
+
     /// Chip ready after reset
     pub fn chip_ready(&mut self) -> bool {
         let isr2 = self.read_register(Registers::INTERRUPT_STATUS_2);
