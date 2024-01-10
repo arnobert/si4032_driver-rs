@@ -4,8 +4,8 @@
 mod registers;
 
 use embedded_hal as hal;
-use embedded_hal::digital::v2::OutputPin;
-use hal::blocking::spi;
+use hal::digital::OutputPin;
+use hal::spi::SpiDevice;
 use crate::registers::Registers;
 
 
@@ -64,9 +64,9 @@ pub struct Si4032<SPI, CS> {
     cs: CS,
 }
 
-impl<SPI, CS, E, PinError> Si4032<SPI, CS>
+impl<SPI, CS, PinError> Si4032<SPI, CS>
     where
-        SPI: spi::Transfer<u8, Error=E> + spi::Write<u8, Error=E>,
+        SPI: embedded_hal::spi::SpiDevice,
         CS: OutputPin<Error=PinError>
 {
     pub fn new(spi: SPI, cs: CS) -> Si4032<SPI, CS> {
@@ -81,7 +81,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     fn write_register(&mut self, reg: Registers, data: u8) {
         self.cs.set_low();
         let wrdata = [reg as u8 | (0x01 << 7), data];
-        self.spi.write(&wrdata);
+        let _ = self.spi.write(&wrdata);
         self.cs.set_high();
     }
 
@@ -95,18 +95,19 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     fn burst_write_register(&mut self, reg: Registers, data: &[u8]) {
         self.cs.set_low();
         let x_reg = reg as u8 | (0x01 << 7);
-        self.spi.write(&[x_reg]);
-        self.spi.write(data);
+        let _ = self.spi.write(&[x_reg]);
+        let _ = self.spi.write(data);
         self.cs.set_high();
     }
 
     /// Read SPI register
     fn read_register(&mut self, reg: Registers) -> u8 {
         self.cs.set_low();
-        let mut rx_buy = [reg as u8, 0];
-        self.spi.transfer(&mut rx_buy);
+        let mut reg = [reg as u8];
+        let mut readx = [0 as u8];
+        self.spi.transfer(&mut reg, &mut readx);
         self.cs.set_high();
-        rx_buy[1]
+        readx[0]
     }
 
     // Set operating modes -------------------------------------------------------------------------
