@@ -291,6 +291,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     }
 
     /// Include packet length into header (Register 0x33)
+    /// ! False -> Length is included in header !
     pub fn set_tx_fixplen(&mut self, fix_len: bool) {
         let hdrctrl = self.read_register(Registers::HEADER_CTRL);
         let mask: u8 = 1 << 3;
