@@ -409,13 +409,8 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (data_reg & !(0x3)) | (bits));
     }
 
-    /// Set packet length (Register 0x3E)
-    pub fn set_packet_len(&mut self, len: u8) {
-        self.write_register(Registers::TX_PACKET_LEN, len);
-    }
-
-    /// Set CRC enable (Register 0x30)
-    pub fn set_crc(&mut self, crc: bool) {
+    /// CRC only on data (Register 0x30)
+    pub fn set_crc_d_only(&mut self, crc: bool) {
         let data_acc = self.read_register(Registers::DATA_ACCESS_CTRL);
         let mask = 1 << 5;
         let bits = (crc as u8) << 5;
@@ -423,6 +418,10 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (data_acc & !(mask)) | (bits));
     }
 
+    /// Set packet length (Register 0x3E)
+    pub fn set_packet_len(&mut self, len: u8) {
+        self.write_register(Registers::TX_PACKET_LEN, len);
+    }
 
     // FIFO
     /// Fifo almost full
