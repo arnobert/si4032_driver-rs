@@ -419,6 +419,16 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
                             (data_acc & !(mask)) | (bits));
     }
 
+    /// ENPAC (Register 0x30)
+    pub fn set_enpac(&mut self, enpac: bool) {
+        let data_acc = self.read_register(Registers::DATA_ACCESS_CTRL);
+        let mask = 1 << 3;
+        let bits = (enpac as u8) << 3;
+        self.write_register(Registers::DATA_ACCESS_CTRL,
+                            (data_acc & !(mask)) | (bits));
+    }
+
+
     /// Set packet length (Register 0x3E)
     pub fn set_packet_len(&mut self, len: u8) {
         self.write_register(Registers::TX_PACKET_LEN, len);
