@@ -266,6 +266,7 @@ impl<SPI, CS, E, PinError> Si4032<SPI, CS>
     /// Clear Fifo (Register 0x08)
     pub fn clear_fifo(&mut self) {
         self.write_register(Registers::OP_FUN_CTRL_2, 0x01);
+        self.write_register(Registers::OP_FUN_CTRL_2, 0x00);
     }
 
     /// Return device status (Register 0x02)
